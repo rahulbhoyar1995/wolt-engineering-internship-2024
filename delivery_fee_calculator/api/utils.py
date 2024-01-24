@@ -1,6 +1,18 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 def delivery_fee_calculation(cart_value, delivery_distance, number_of_items, time):
+    """
+    Calculate the delivery fee based on input parameters.
+
+    Args:
+        cart_value (int): Value of the shopping cart in cents.
+        delivery_distance (int): Distance between the store and customer's location in meters.
+        number_of_items (int): Number of items in the customer's shopping cart.
+        time (str): Order time in UTC in ISO format (e.g., "2024-01-15T13:00:00Z").
+
+    Returns:
+        int: Calculated delivery fee in cents.
+    """
     # Constants
     SMALL_ORDER_SURCHARGE_THRESHOLD = 1000  # 10€ in cents
     BASE_DELIVERY_FEE = 200  # 2€ in cents
@@ -36,6 +48,7 @@ def delivery_fee_calculation(cart_value, delivery_distance, number_of_items, tim
     # Check if it's Friday rush
     order_time = datetime.strptime(time, "%Y-%m-%dT%H:%M:%SZ")
     if order_time.weekday() == 4 and FRIDAY_RUSH_START <= order_time.hour < FRIDAY_RUSH_END:
+        delivery_fee *= FRIDAY_RUSH_MULTIPLIER
         total_surcharge *= FRIDAY_RUSH_MULTIPLIER
 
     # Apply total surcharge to delivery fee
