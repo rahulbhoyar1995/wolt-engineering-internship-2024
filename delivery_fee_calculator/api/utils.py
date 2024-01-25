@@ -1,64 +1,90 @@
-from datetime import datetime
+def validate_time_format(time):
+    from datetime import datetime
+    try:
+        datetime.strptime(time, "%Y-%m-%dT%H:%M:%SZ")
+        return True
+    except ValueError:
+        return False
 
-def delivery_fee_calculation(cart_value, delivery_distance, number_of_items, time):
-    """
-    Calculate the delivery fee based on input parameters.
+def validate_input_data(cart_value, delivery_distance, number_of_items, time):
+    if not all(isinstance(val, int) for val in [cart_value, delivery_distance, number_of_items]) or not isinstance(time, str):
+        return False
+    if any(val < 0 for val in [cart_value, delivery_distance, number_of_items]):
+        return False
+    if not validate_time_format(time):
+        return False
+    return True
 
-    Args:
-        cart_value (int): Value of the shopping cart in cents.
-        delivery_distance (int): Distance between the store and customer's location in meters.
-        number_of_items (int): Number of items in the customer's shopping cart.
-        time (str): Order time in UTC in ISO format (e.g., "2024-01-15T13:00:00Z").
+def calculate_surcharge_for_lower_cart_value_order(cart_value):
+    minimum_cart_value = 1000
+    surcharge = max(0, minimum_cart_value - cart_value)
+    return surcharge
 
-    Returns:
-        int: Calculated delivery fee in cents.
-    """
-    # Constants
-    SMALL_ORDER_SURCHARGE_THRESHOLD = 1000  # 10€ in cents
-    BASE_DELIVERY_FEE = 200  # 2€ in cents
-    ADDITIONAL_DISTANCE_FEE = 100  # 1€ in cents
-    MIN_DISTANCE_FEE = ADDITIONAL_DISTANCE_FEE
-    ITEM_SURCHARGE = 50  # 0.50€ in cents
-    BULK_ITEM_SURCHARGE = 120  # 1.20€ in cents
-    MAX_DELIVERY_FEE = 1500  # 15€ in cents
-    FREE_DELIVERY_THRESHOLD = 20000  # 200€ in cents
+def calculate_surcharge_for_large_orders(num_items):
+    item_surcharge_threshold = 4
+    bulk_fee_threshold = 12
+    item_surcharge = max(0, (num_items - item_surcharge_threshold) * 50)
+    bulk_fee = 120 if num_items > bulk_fee_threshold else 0
+
+    total_surcharge = item_surcharge + bulk_fee
+    return total_surcharge
+
+def calculate_delivery_fee_in_cents_for_distance(distance):
+    base_fee_cents = 200
+    additional_fee_per_500m_cents = 100
+
+    if distance <= 1000:
+        return base_fee_cents
+
+    # Calculate additional fees for each 500 meters beyond the first kilometer
+    additional_distance = max(0, distance - 1000)  # Distance beyond the first kilometer
+
+    if additional_distance % 500 == 0:
+        additional_fee_cents = (additional_distance // 500) * additional_fee_per_500m_cents
+    else:
+        additional_fee_cents = ((additional_distance // 500) + 1) * additional_fee_per_500m_cents
+
+    # Add additional fees to the base fee
+    delivery_fee_cents = base_fee_cents + additional_fee_cents
+
+    return delivery_fee_cents
+
+
+def friday_rush_multiplier(delivery_fee,time):
+    from datetime import datetime
     FRIDAY_RUSH_START = 15  # 3 PM in 24-hour format
     FRIDAY_RUSH_END = 19  # 7 PM in 24-hour format
     FRIDAY_RUSH_MULTIPLIER = 1.2
 
-    # Calculate small order surcharge
-    small_order_surcharge = max(0, SMALL_ORDER_SURCHARGE_THRESHOLD - cart_value)
-
-    # Calculate base delivery fee
-    delivery_fee = BASE_DELIVERY_FEE
-
-    # Calculate additional distance fee
-    additional_distance = max(0, delivery_distance - 1000)
-    additional_distance_fee = ((additional_distance + MIN_DISTANCE_FEE - 1) // MIN_DISTANCE_FEE) * ADDITIONAL_DISTANCE_FEE
-
-    # Calculate item surcharge
-    item_surcharge = max(0, number_of_items - 4) * ITEM_SURCHARGE
-
-    # Calculate bulk item surcharge
-    bulk_item_surcharge = max(0, number_of_items - 12) * ITEM_SURCHARGE + BULK_ITEM_SURCHARGE
-
-    # Calculate total surcharge
-    total_surcharge = small_order_surcharge + additional_distance_fee + item_surcharge + bulk_item_surcharge
-
-    # Check if it's Friday rush
     order_time = datetime.strptime(time, "%Y-%m-%dT%H:%M:%SZ")
     if order_time.weekday() == 4 and FRIDAY_RUSH_START <= order_time.hour < FRIDAY_RUSH_END:
-        delivery_fee *= FRIDAY_RUSH_MULTIPLIER
-        total_surcharge *= FRIDAY_RUSH_MULTIPLIER
+        delivery_fee = delivery_fee * FRIDAY_RUSH_MULTIPLIER
+        return delivery_fee 
+    else:
+        return delivery_fee
+        
 
-    # Apply total surcharge to delivery fee
-    delivery_fee += total_surcharge
+def delivery_fee_calculation(cart_value, delivery_distance, number_of_items, time):
+    if cart_value >= 20000:
+        return 0
+    # Step 1
+    surcharge_for_lower_cart_value_order = calculate_surcharge_for_lower_cart_value_order(cart_value)
+    #print("surcharge_for_lower_cart_value_order :",surcharge_for_lower_cart_value_order)
 
-    # Apply maximum delivery fee constraint
-    delivery_fee = min(delivery_fee, MAX_DELIVERY_FEE)
+    # Step 2
+    delivery_fee_in_cents_for_distance = calculate_delivery_fee_in_cents_for_distance(delivery_distance)
+    #print("delivery_fee_in_cents_for_distance :",delivery_fee_in_cents_for_distance)
 
-    # Check for free delivery
-    if cart_value >= FREE_DELIVERY_THRESHOLD:
-        delivery_fee = 0
+    # Step 3
+    surcharge_for_large_orders = calculate_surcharge_for_large_orders(number_of_items)
+    #print("surcharge_for_large_orders :",surcharge_for_large_orders)
+    
+    total_delivery_fee = surcharge_for_lower_cart_value_order + delivery_fee_in_cents_for_distance + surcharge_for_large_orders 
 
-    return int(round(delivery_fee))  # Return in cents
+    #Step 4 : Friday rush case
+    total_delivery_fee = int(friday_rush_multiplier(total_delivery_fee,time))
+
+    if total_delivery_fee > 1500:
+        return 1500
+
+    return total_delivery_fee

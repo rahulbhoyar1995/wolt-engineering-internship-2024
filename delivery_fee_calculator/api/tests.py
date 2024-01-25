@@ -54,18 +54,17 @@ class CalculateDeliveryFeeTestCase(TestCase):
         """
         Test the Friday rush scenario where the delivery fee is multiplied by 1.2x.
         """
-        friday_rush_time = datetime.utcnow().replace(hour=16, minute=0, second=0)  # 4 PM UTC
-
+        friday_rush_time = "2024-01-19T16:00:00Z"  # 4 PM UTC
         data = {
             'cart_value': 1500,
             'delivery_distance': 1000,
             'number_of_items': 4,
-            'time': friday_rush_time.strftime('%Y-%m-%dT%H:%M:%SZ'),
+            'time': friday_rush_time,
         }
 
         response = self.client.post('', data, format='json')
 
-        expected_fee = int(round(2 + 1 + 50 + 120) * 1.2)
+        expected_fee = int(round(0 + 200 + 0) * 1.2)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['delivery_fee'], expected_fee)
 
@@ -82,7 +81,7 @@ class CalculateDeliveryFeeTestCase(TestCase):
 
         response = self.client.post('', data, format='json')
 
-        expected_fee = int(round(2 + 1 + 50 + 120) + (1000 - 890))
+        expected_fee = int((1000 - 890) + round(200 + 0))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['delivery_fee'], expected_fee)
 
@@ -102,9 +101,25 @@ class CalculateDeliveryFeeTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['delivery_fee'], 1500)
 
-    def test_calculate_delivery_fee_invalid_input(self):
+    def test_calculate_delivery_fee_invalid_input_distance(self):
         """
-        Test with invalid input data.
+        Test with invalid input data : distance in string
+        """
+        data = {
+            'cart_value': 'invalid_value',
+            'delivery_distance': "23432",
+            'number_of_items': 4,
+            'time': '2024-01-15T13:00:00Z',
+        }
+
+        response = self.client.post('', data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('error', response.data)  # Check for validation error
+
+    def test_calculate_delivery_fee_invalid_input_cart_value(self):
+        """
+        Test with invalid input data : cart value
         """
         data = {
             'cart_value': 'invalid_value',
@@ -116,6 +131,21 @@ class CalculateDeliveryFeeTestCase(TestCase):
         response = self.client.post('', data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('cart_value', response.data)  # Check for validation error
+        self.assertIn('error', response.data)
+        
+        
+    def test_calculate_delivery_fee_invalid_input_time_value(self):
+        """
+        Test with invalid input data : cart value
+        """
+        data = {
+            'cart_value': 3233,
+            'delivery_distance': 1000,
+            'number_of_items': 4,
+            'time': 'incorrect',
+        }
 
-    # Add more test cases as needed based on specific scenarios.
+        response = self.client.post('', data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('error', response.data)
