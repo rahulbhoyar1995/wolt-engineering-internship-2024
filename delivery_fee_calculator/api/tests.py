@@ -14,7 +14,7 @@ class CalculateDeliveryFeeTestCase(TestCase):
         """
         self.client = APIClient()
 
-    def test_calculate_delivery_fee_success(self):
+    def test_calculate_delivery_fee_success_1(self):
         """
         Test a successful calculation of delivery fee.
         """
@@ -29,6 +29,23 @@ class CalculateDeliveryFeeTestCase(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['delivery_fee'], 710)
+        
+        
+    def test_calculate_delivery_fee_success_2(self):
+        """
+        Test a successful calculation of delivery fee.
+        """
+        data = {
+            'cart_value': 910,
+            'delivery_distance': 1780,
+            'number_of_items': 17,
+            'time': '2024-01-15T13:00:00Z',
+        }
+
+        response = self.client.post('', data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['delivery_fee'], 1260)
 
     def test_calculate_delivery_fee_free_delivery(self):
         """
@@ -46,7 +63,7 @@ class CalculateDeliveryFeeTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['delivery_fee'], 0)
 
-    def test_calculate_delivery_fee_friday_rush(self):
+    def test_calculate_delivery_fee_friday_rush_1(self):
         """
         Test the Friday rush scenario where the delivery fee is multiplied by 1.2x.
         """
@@ -63,6 +80,25 @@ class CalculateDeliveryFeeTestCase(TestCase):
         expected_fee = int(round(0 + 200 + 0) * 1.2)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['delivery_fee'], expected_fee)
+          
+    def test_calculate_delivery_fee_friday_rush_2(self):
+        """
+        Test the Friday rush scenario where the delivery fee is multiplied by 1.2x.
+        """
+        friday_rush_time = "2024-02-02T17:00:00Z"  # 5 PM UTC
+        data = {
+            'cart_value': 2200,
+            'delivery_distance': 1800,
+            'number_of_items': 9,
+            'time': friday_rush_time,
+        }
+
+        response = self.client.post('', data, format='json')
+
+        expected_fee = int(round(0 + 400 + 250) * 1.2)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['delivery_fee'], expected_fee)
+
 
     def test_calculate_delivery_fee_small_order_surcharge(self):
         """
