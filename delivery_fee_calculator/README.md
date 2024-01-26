@@ -2,8 +2,6 @@
 
 ---
 
-
-
 ## Wolt Summer 2024 Engineering Internships Project
 
 #### Author : Mr. Rahul Bhoyar
@@ -12,9 +10,12 @@
 
 ---
 
-
-
 This Django application provides an HTTP API for calculating the delivery fee based on various parameters such as cart value, delivery distance, number of items, and order time.
+
+
+![Assignment Backend 1](README_supported_files/assignment_backend_1.png)
+
+![Assignment Backend 1](README_supported_files/assignment_backend_2.png)
 
 ## Table of Contents
 
@@ -29,8 +30,6 @@ This Django application provides an HTTP API for calculating the delivery fee ba
   * [Contributing](https://chat.openai.com/c/f941833b-2591-4bc6-ab87-6597628db058#contributing)
 
 ---
-
-
 
 ## Specifications
 
@@ -55,8 +54,6 @@ This Django application provides an HTTP API for calculating the delivery fee ba
 
 ---
 
-
-
 ### Requirements
 
 * Python (version compatible with Django) (Python 3.8 or greater)
@@ -64,8 +61,6 @@ This Django application provides an HTTP API for calculating the delivery fee ba
 * Django Rest Framework
 
 ---
-
-
 
 ## Installation
 
@@ -88,8 +83,6 @@ This Django application provides an HTTP API for calculating the delivery fee ba
 
 ---
 
-
-
 ## Usage
 
 Run the development server:
@@ -101,8 +94,6 @@ python manage.py runserver
 The API will be accessible at [http://localhost:8000/]().
 
 ---
-
-
 
 ## API Endpoints
 
@@ -120,8 +111,6 @@ The API will be accessible at [http://localhost:8000/]().
 
 ---
 
-
-
 ## Testing
 
 Run the tests using the following command:
@@ -132,12 +121,10 @@ python manage.py test
 
 ---
 
-
-
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request.
 
-Here is the Git Repository link : 
+Here is the Git Repository link :
 
 **[https://github.com/rahulbhoyar1995/wolt-engineering-internship-2024.git]()**
