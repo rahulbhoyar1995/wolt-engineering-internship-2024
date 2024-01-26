@@ -1,11 +1,7 @@
-"""
-Tests for the CalculateDeliveryFee API endpoint.
-"""
-
+from datetime import datetime
 from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework import status
-from datetime import datetime, timedelta
 
 class CalculateDeliveryFeeTestCase(TestCase):
     """
@@ -103,7 +99,7 @@ class CalculateDeliveryFeeTestCase(TestCase):
 
     def test_calculate_delivery_fee_invalid_input_distance(self):
         """
-        Test with invalid input data : distance in string
+        Test with invalid input data: distance in string.
         """
         data = {
             'cart_value': 'invalid_value',
@@ -119,7 +115,7 @@ class CalculateDeliveryFeeTestCase(TestCase):
 
     def test_calculate_delivery_fee_invalid_input_cart_value(self):
         """
-        Test with invalid input data : cart value
+        Test with invalid input data: cart value.
         """
         data = {
             'cart_value': 'invalid_value',
@@ -132,11 +128,10 @@ class CalculateDeliveryFeeTestCase(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('error', response.data)
-        
-        
+
     def test_calculate_delivery_fee_invalid_input_time_value(self):
         """
-        Test with invalid input data : cart value
+        Test with invalid input data: time value.
         """
         data = {
             'cart_value': 3233,
@@ -149,3 +144,14 @@ class CalculateDeliveryFeeTestCase(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('error', response.data)
+
+    def test_invalid_empty_data_request(self):
+        """
+        Test with invalid empty data in the request body.
+        """
+        invalid_data = {}
+        response = self.client.post('', data=invalid_data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        error_from_request = str(response.data[0])
+        expected_error = 'Bad Request. No input data provided. Please provide the input data in the request body.'
+        self.assertEqual(error_from_request, expected_error)

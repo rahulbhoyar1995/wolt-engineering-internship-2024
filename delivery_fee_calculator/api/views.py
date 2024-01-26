@@ -1,26 +1,26 @@
-# delivery_fee_calculator/views.py
+from json.decoder import JSONDecodeError
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.exceptions import ParseError, ValidationError
 from .serializers import DeliveryFeeCalculatorSerializer
 from .utils import delivery_fee_calculation, validate_input_data
-from json.decoder import JSONDecodeError
-from rest_framework.exceptions import ParseError, ValidationError
 
 class CalculateDeliveryFee(APIView):
     """
     API endpoint to calculate the delivery fee based on the provided input.
+    The request should be a POST request with the input data in the request body.
 
     Request Payload:
     {
-        "cart_value": Integer,  # Value of the shopping cart in cents
-        "delivery_distance": Integer,  # Distance between the store and customer's location in meters
-        "number_of_items": Integer,  # Number of items in the customer's shopping cart
-        "time": String  # Order time in UTC in ISO format
+        "cart_value": Integer - Value of the shopping cart in cents
+        "delivery_distance": Integer - Distance between the store and customer's location in meters
+        "number_of_items": Integer - Number of items in the customer's shopping cart
+        "time": String - Order time in UTC in ISO format
     }
 
     Response Payload:
     {
-        "delivery_fee": Integer  # Calculated delivery fee in cents
+        "delivery_fee": Integer - Calculated delivery fee in cents
     }
     """
 
@@ -41,7 +41,6 @@ class CalculateDeliveryFee(APIView):
                 # Return an error response if validation fails
                 error = {'error': 'Invalid input data. Please ensure that all input values are provided and in the correct format.'}
                 return Response(error, status=400)
-
 
             # Calculate the delivery fee using the utility function
             delivery_fee = delivery_fee_calculation(cart_value, delivery_distance, number_of_items, time)
